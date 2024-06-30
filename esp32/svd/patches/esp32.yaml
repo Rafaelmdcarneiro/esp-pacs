@@ -1,0 +1,169 @@
+_svd: ../esp32.base.svd
+
+I2C0:
+  _modify:
+    INT_STATUS:
+      name: INT_ST
+
+RTC_I2C:
+  _modify:
+    INT_EN:
+      name: INT_ENA
+
+RTC_IO:
+  _include: ../../../common_patches/rtc_io.yaml
+
+"EFUSE,I2C0,I2S0,RTC_CNTL,RTC_I2C,UART0,UHCI0":
+  _include: ../../../common_patches/int_strip.yaml
+
+LEDC:
+  _expand_array:
+    "?SCH%s_CONF0": {}
+    "?SCH%s_HPOINT": {}
+    "?SCH%s_DUTY": {}
+    "?SCH%s_CONF1": {}
+    "?SCH%s_DUTY_R": {}
+
+    "?STIMER%s_CONF": {}
+    "?STIMER%s_VALUE": {}
+
+  _cluster:
+    HSCH%s:
+      HSCH?_CONF0:
+        name: CONF0
+      HSCH?_HPOINT:
+        name: HPOINT
+      HSCH?_DUTY:
+        name: DUTY
+      HSCH?_CONF1:
+        name: CONF1
+      HSCH?_DUTY_R:
+        name: DUTY_R
+    LSCH%s:
+      LSCH?_CONF0:
+        name: CONF0
+      LSCH?_HPOINT:
+        name: HPOINT
+      LSCH?_DUTY:
+        name: DUTY
+      LSCH?_CONF1:
+        name: CONF1
+      LSCH?_DUTY_R:
+        name: DUTY_R
+
+    HSTIMER%s:
+      HSTIMER?_CONF:
+        name: CONF
+      HSTIMER?_VALUE:
+        name: VALUE
+    LSTIMER%s:
+      LSTIMER?_CONF:
+        name: CONF
+      LSTIMER?_VALUE:
+        name: VALUE
+  INT_RAW:
+    _strip_end: _INT_RAW
+    _modify:
+      "*":
+        access: read-write
+    _array:
+      HSTIMER?_OVF: {}
+      LSTIMER?_OVF: {}
+      DUTY_CHNG_END_HSCH?: {}
+      DUTY_CHNG_END_LSCH?: {}
+  INT_ST:
+    _strip_end: _INT_ST
+    _array:
+      HSTIMER?_OVF: {}
+      LSTIMER?_OVF: {}
+      DUTY_CHNG_END_HSCH?: {}
+      DUTY_CHNG_END_LSCH?:
+        description: The interrupt status bit for low speed channel %s duty change done event.
+  INT_ENA:
+    _strip_end: _INT_ENA
+    _array:
+      HSTIMER?_OVF: {}
+      LSTIMER?_OVF: {}
+      DUTY_CHNG_END_HSCH?: {}
+      DUTY_CHNG_END_LSCH?: {}
+  INT_CLR:
+    _strip_end: _INT_CLR
+    _array:
+      HSTIMER?_OVF: {}
+      LSTIMER?_OVF: {}
+      DUTY_CHNG_END_HSCH?: {}
+      DUTY_CHNG_END_LSCH?: {}
+    _modify:
+      "*":
+        modifiedWriteValues: oneToClear
+
+PCNT:
+  U%s_STATUS:
+    _modify:
+      CORE_STATUS_U0:
+        name: CORE_STATUS
+  _include: ../../../common_patches/pcnt.yaml
+
+SENS:
+  _include: ../../../common_patches/sens.yaml
+
+SPI0:
+  _include:
+    - ../../../common_patches/spi_dma_int_strip.yaml
+    - ../../../common_patches/spi_w.yaml
+
+TIMG0:
+  _include: ../../../common_patches/tim_collect.yaml
+  T0UPDATE:
+    _modify:
+      UPDATE:
+        bitOffset: 31
+        bitWidth: 1
+        access: read-write
+  T1UPDATE:
+    _modify:
+      UPDATE:
+        bitOffset: 31
+        bitWidth: 1
+        access: read-write
+  "LACT*":
+    _strip: LACT_
+
+GPIO_SD:
+  _modify:
+    CG:
+      name: CLOCK_GATE
+    MISC:
+      name: SIGMADELTA_MISC
+  SIGMADELTA%s:
+    _strip: SD0_
+  CLOCK_GATE:
+    _strip: SD_
+  VERSION:
+    _modify:
+      SD_DATE:
+        name: GPIO_SD_DATE
+
+UHCI0:
+  _include: ../../../common_patches/int_strip.yaml
+  Q?_WORD?:
+    _modify:
+      SEND_Q?_WORD?:
+        name: SEND_WORD
+
+  _cluster:
+    Q%s:
+      Q?_WORD0:
+        name: WORD0
+      Q?_WORD1:
+        name: WORD1
+
+  _array:
+    ESC_CONF?: {}
+
+MCPWM0:
+  _include: ../../../common_patches/mcpwm_collect.yaml
+  INT_RAW:
+    _modify:
+      "*":
+        access: read-write
